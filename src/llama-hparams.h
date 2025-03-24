@@ -24,6 +24,25 @@ struct llama_hparams_convnext {
     uint32_t n_layer;
 };
 
+struct llama_hparams_mimi {
+    // quantizer
+    uint32_t codebook_dim;
+    uint32_t codebook_size;
+    uint32_t num_quantizers;
+
+    // decoder transformer
+    uint32_t decoder_transformers_num_hidden_layers;
+
+    // decoder
+    uint32_t decoder_hidden_size;
+    uint32_t decoder_upsampling_ratios[4];
+    uint32_t decoder_num_filters;
+    uint32_t decoder_kernel_size;
+    uint32_t decoder_num_residual_layers;
+    uint32_t decoder_dilation_growth_rate;
+    uint32_t decoder_last_kernel_size;
+};
+
 struct llama_hparams {
     bool vocab_only;
     bool rope_finetuned;
@@ -46,6 +65,9 @@ struct llama_hparams {
     // for WavTokenizer
     struct llama_hparams_posnet   posnet;
     struct llama_hparams_convnext convnext;
+
+    // for MimiTokenizer
+    struct llama_hparams_mimi mimi;
 
     std::array<uint32_t, LLAMA_MAX_LAYERS> n_head_arr;
     std::array<uint32_t, LLAMA_MAX_LAYERS> n_head_kv_arr;

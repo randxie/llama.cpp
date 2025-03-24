@@ -3499,6 +3499,36 @@ bool llama_model::load_tensors(llama_model_loader & ml) {
                     output   = create_tensor(tn(LLM_TENSOR_OUTPUT, "weight"), {hparams.convnext.n_embd, n_embd}, 0);
                     output_b = create_tensor(tn(LLM_TENSOR_OUTPUT, "bias"),   {n_embd}, 0);
                 } break;
+            case LLM_ARCH_MIMITOKENIZER_DEC:
+                {
+                    // quantizer
+                    uint32_t start_idx = 0;
+                    uint32_t end_idx = hparams.mimi.num_quantizers;
+                    {
+                        for (uint32_t i = start_idx; i < end_idx; ++i) {
+                            auto & layer = layers[i];
+                            layer.vector_quantizer.embed = create_tensor(tn(LLM_TENSOR_TOKEN_EMBD, "weight", i), {n_embd}, 0);
+                        }
+                    }
+                    start_idx = end_idx;
+                    end_idx += hparams.mimi.decoder_transformers_num_hidden_layers;
+
+                    // decoder transformer
+                    {
+                        for (uint32_t i = start_idx; i < end_idx; ++i) {
+                            auto & layer = layers[i];
+                        }
+                    }
+                    start_idx = end_idx;
+                    end_idx += hparams.mimi.decoder_num_residual_layers;
+
+                    // decoder
+                    {
+                        for (uint32_t i = start_idx; i < end_idx; ++i) {
+                            auto & layer = layers[i];
+                        }
+                    }
+                } break;
             default:
                 throw std::runtime_error("unknown architecture");
         }
@@ -10724,6 +10754,44 @@ struct llm_build_chameleon : public llm_graph_context {
     }
 };
 
+struct llm_build_mimitokenizer_dec : public llm_graph_context {
+    llm_build_mimitokenizer_dec(const llama_model & model, const llm_graph_params & params, ggml_cgraph * gf) : llm_graph_context(params) {
+        ggml_tensor * cur;
+        ggml_tensor * inpL;
+
+        // quantizer
+        uint32_t layer_start_idx = 0;
+        uint32_t layer_end_idx = hparams.mimi.num_quantizers;
+        for (uint32_t iq = layer_start_idx; iq < layer_end_idx; ++iq) {
+            const auto & quantizer = model.layers[iq];
+        }
+        layer_start_idx += hparams.mimi.num_quantizers;
+        layer_end_idx = layer_start_idx + hparams.mimi.decoder_transformers_num_hidden_layers;
+
+        // decoder transformers
+        for (uint32_t il = layer_start_idx; il < layer_end_idx; ++il) {
+        }
+        layer_start_idx = layer_end_idx;
+        layer_end_idx = layer_start_idx + hparams.mimi.num_residual_layers;
+
+        // decoder
+        for (uint32_t il = layer_start_idx; il < layer_end_idx; ++il) {
+            const auto & layer = model.layers[il].convnext;
+            inpL = ggml_add(ctx0, cur, inpL);
+        }
+
+        cur = build_norm(cur,
+                model.output_norm,
+                model.output_norm_b,
+                LLM_NORM, -1);
+
+        cb(cur, "result_embd", -1);
+        res->t_embd = cur;
+
+        ggml_build_forward_expand(gf, cur);
+    }
+};
+
 struct llm_build_wavtokenizer_dec : public llm_graph_context {
     llm_build_wavtokenizer_dec(const llama_model & model, const llm_graph_params & params, ggml_cgraph * gf) : llm_graph_context(params) {
         ggml_tensor * cur;
@@ -11136,6 +11204,10 @@ llm_graph_result_ptr llama_model::build_graph(
         case LLM_ARCH_WAVTOKENIZER_DEC:
             {
                 llm = std::make_unique<llm_build_wavtokenizer_dec>(*this, params, gf);
+            } break;
+        case LLM_ARCH_MIMITOKENIZER_DEC:
+            {
+                llm = std::make_unique<llm_build_mimitokenizer_dec>(*this, params, gf);
             } break;
         default:
             GGML_ABORT("fatal error");

@@ -2278,6 +2278,33 @@ class WavTokenizerDecModel(Model):
         self.gguf_writer.add_causal_attention(False)
 
 
+@Model.register("MimiModel")
+class MimiTokenizerDecModel(Model):
+    model_arch = gguf.MODEL_ARCH.MIMITOKENIZER_DEC
+
+    def modify_tensors(self, data_torch: Tensor, name: str, bid: int | None) -> Iterable[tuple[str, Tensor]]:
+        del bid  # unused
+
+        if name.endswith("codebook.inited"):
+            logger.debug(f"Skipping {name!r}")
+            return []
+
+        logger.info(f"{self.map_tensor_name(name)} -> {data_torch.shape}")
+
+        return [(self.map_tensor_name(name), data_torch)]
+
+    def set_gguf_parameters(self):
+        super().set_gguf_parameters()
+
+        # quantizer
+        self.gguf_writer.add_string("num_quantizers", str(self.hparams["num_quantizers"]))
+
+        # decoder transformer
+        self.gguf_writer.add_string("decoder_transformers_num_hidden_layers", str(self.hparams["num_hidden_layers"]))
+
+        # decoder
+        self.gguf_writer.add_string("decoder_num_residual_layers", str(self.hparams["residual_layers"]))
+
 @Model.register("Qwen2MoeForCausalLM")
 class Qwen2MoeModel(Model):
     model_arch = gguf.MODEL_ARCH.QWEN2MOE

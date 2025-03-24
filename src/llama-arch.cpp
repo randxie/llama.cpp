@@ -63,6 +63,7 @@ static const std::map<llm_arch, const char *> LLM_ARCH_NAMES = {
     { LLM_ARCH_GRANITE_MOE,      "granitemoe"       },
     { LLM_ARCH_CHAMELEON,        "chameleon"        },
     { LLM_ARCH_WAVTOKENIZER_DEC, "wavtokenizer-dec" },
+    { LLM_ARCH_MIMITOKENIZER_DEC, "mimitokenizer-dec" },
     { LLM_ARCH_UNKNOWN,          "(unknown)"        },
 };
 
@@ -1315,6 +1316,12 @@ static const std::map<llm_arch, std::map<llm_tensor, const char *>> LLM_TENSOR_N
             { LLM_TENSOR_POS_NET_ATTN_K,    "posnet.%d.attn_k" },
             { LLM_TENSOR_POS_NET_ATTN_V,    "posnet.%d.attn_v" },
             { LLM_TENSOR_POS_NET_ATTN_OUT,  "posnet.%d.attn_output" },
+        },
+    },
+    {
+        LLM_ARCH_MIMITOKENIZER_DEC,
+        {
+            { LLM_TENSOR_TOKEN_EMBD,      "layers.%d.quantizer.embed" },
         },
     },
     {

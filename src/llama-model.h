@@ -135,6 +135,10 @@ struct llama_layer_convnext {
     struct ggml_tensor * gamma = nullptr;
 };
 
+struct llama_layer_vector_quantizer {
+    struct ggml_tensor * embed   = nullptr;
+};
+
 struct llama_layer {
     // normalization
     struct ggml_tensor * attn_norm       = nullptr;
@@ -288,6 +292,8 @@ struct llama_layer {
     struct llama_layer_posnet posnet;
 
     struct llama_layer_convnext convnext;
+
+    struct llama_layer_vector_quantizer vector_quantizer;
 };
 
 struct llama_model {

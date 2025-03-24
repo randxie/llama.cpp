@@ -280,6 +280,7 @@ class MODEL_ARCH(IntEnum):
     GRANITE_MOE      = auto()
     CHAMELEON        = auto()
     WAVTOKENIZER_DEC = auto()
+    MIMITOKENIZER_DEC = auto()
 
 
 class MODEL_TENSOR(IntEnum):
@@ -468,6 +469,7 @@ MODEL_ARCH_NAMES: dict[MODEL_ARCH, str] = {
     MODEL_ARCH.GRANITE_MOE:      "granitemoe",
     MODEL_ARCH.CHAMELEON:        "chameleon",
     MODEL_ARCH.WAVTOKENIZER_DEC: "wavtokenizer-dec",
+    MODEL_ARCH.MIMITOKENIZER_DEC: "mimitokenizer-dec",
 }
 
 TENSOR_NAMES: dict[MODEL_TENSOR, str] = {
