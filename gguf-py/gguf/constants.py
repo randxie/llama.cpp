@@ -427,7 +427,6 @@ class MODEL_TENSOR(IntEnum):
     POSNET_ATTN_V        = auto()
     POSNET_ATTN_OUT      = auto()
 
-
 MODEL_ARCH_NAMES: dict[MODEL_ARCH, str] = {
     MODEL_ARCH.LLAMA:            "llama",
     MODEL_ARCH.DECI:             "deci",
@@ -1653,6 +1652,13 @@ MODEL_TENSORS: dict[MODEL_ARCH, list[MODEL_TENSOR]] = {
         MODEL_TENSOR.POSNET_ATTN_V,
         MODEL_TENSOR.POSNET_ATTN_OUT,
     ],
+    MODEL_ARCH.MIMITOKENIZER_DEC: [
+        MODEL_TENSOR.TOKEN_EMBD,
+        MODEL_TENSOR.OUTPUT_NORM,
+        MODEL_TENSOR.OUTPUT,
+        MODEL_TENSOR.ATTN_NORM,
+        MODEL_TENSOR.ATTN_Q,
+    ]
     # TODO
 }
 

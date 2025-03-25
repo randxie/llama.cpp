@@ -2334,25 +2334,35 @@ class MimiTokenizerDecModel(Model):
     def modify_tensors(self, data_torch: Tensor, name: str, bid: int | None) -> Iterable[tuple[str, Tensor]]:
         del bid  # unused
 
-        if name.endswith("codebook.inited"):
-            logger.debug(f"Skipping {name!r}")
-            return []
+        if name.startswith("decoder.") \
+            or name.startswith("decoder_transformer.") \
+            or name.startswith("quantizer.") \
+            or name.startswith("upsample."):
+            logger.info(f"{name} -> {data_torch.shape}")
+            return [(name, data_torch)]
 
-        logger.info(f"{self.map_tensor_name(name)} -> {data_torch.shape}")
+        logger.info(f"Skipping {name} with shape {data_torch.shape}")
+        return []
 
-        return [(self.map_tensor_name(name), data_torch)]
+    def set_vocab(self):
+        self._set_vocab_none()
 
     def set_gguf_parameters(self):
         super().set_gguf_parameters()
-
-        # quantizer
-        self.gguf_writer.add_string("num_quantizers", str(self.hparams["num_quantizers"]))
-
-        # decoder transformer
-        self.gguf_writer.add_string("decoder_transformers_num_hidden_layers", str(self.hparams["num_hidden_layers"]))
-
-        # decoder
-        self.gguf_writer.add_string("decoder_num_residual_layers", str(self.hparams["residual_layers"]))
+        # Codebook parameters
+        self.gguf_writer.add_uint32("codebook_dim", self.hparams["codebook_dim"])
+        self.gguf_writer.add_uint32("codebook_size", self.hparams["codebook_size"])
+        
+        # Decoder transformer parameters
+        self.gguf_writer.add_uint32("decoder_transformers_num_hidden_layers", self.hparams["num_hidden_layers"])
+        
+        # Decoder parameters
+        self.gguf_writer.add_uint32("decoder_hidden_size", self.hparams["hidden_size"])
+        
+        # Decoder upsampling ratios
+        self.gguf_writer.add_array("decoder_upsampling_ratios", self.hparams["upsampling_ratios"])
+        self.gguf_writer.add_uint32("decoder_num_filters", self.hparams["num_filters"])
+        
 
 @Model.register("Qwen2MoeForCausalLM")
 class Qwen2MoeModel(Model):
